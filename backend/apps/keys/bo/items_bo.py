@@ -39,3 +39,16 @@ class ItemsBO:
     @staticmethod
     def delete_item(instance):
         instance.delete()
+
+    @staticmethod
+    def get_organized_keys(user):
+        """
+        Retorna las keys organizadas por carpetas y las keys sin carpeta.
+        """
+        folders = Folder.objects.filter(user=user).prefetch_related('items')
+        keys_without_folder = KeyItem.objects.filter(user=user, folder__isnull=True)
+        
+        return {
+            'folders': folders,
+            'items': keys_without_folder
+        }

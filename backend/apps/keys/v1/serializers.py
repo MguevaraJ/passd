@@ -33,3 +33,26 @@ class KeyItemSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         return ItemsBO.update_item(instance, **validated_data)
+
+
+class KeyItemDetailSerializer(serializers.ModelSerializer):
+    """Serializer para items individuales sin referencia a folder"""
+    class Meta:
+        model = KeyItem
+        fields = ['id', 'url', 'username', 'encrypted_pass', 'note', 'tags', 'folder']
+
+
+class FolderWithItemsSerializer(serializers.ModelSerializer):
+    """Serializer para carpetas con sus items"""
+    items = KeyItemDetailSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Folder
+        fields = ['id', 'name', 'items']
+
+
+class OrganizedKeysSerializer(serializers.Serializer):
+    """Serializer para la respuesta organizada de keys y folders"""
+    folders = FolderWithItemsSerializer(many=True)
+    items = KeyItemDetailSerializer(many=True)
+
