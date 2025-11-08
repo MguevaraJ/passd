@@ -1,0 +1,94 @@
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  db:
+    image: postgres:16-alpine
+    container_name: passd_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-passd_db}
+      POSTGRES_USER: ${POSTGRES_USER:-passd_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-passd_secure_password_2024}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - passd_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-passd_user} -d ${POSTGRES_DB:-passd_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ============================================
+  # Django Backend Application
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: passd_backend
+    restart: unless-stopped
+    command: gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 60 --reload --access-logfile - --error-logfile - backend.wsgi:application
+    environment:
+      # Django Configuration
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-change-this-in-production}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      
+      # Database Configuration
+      DB_ENGINE: ${DB_ENGINE:-django.db.backends.postgresql}
+      DB_NAME: ${DB_NAME:-passd_db}
+      DB_USER: ${DB_USER:-passd_user}
+      DB_PASSWORD: ${DB_PASSWORD:-passd_secure_password_2024}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      
+      # Application Configuration
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      
+      # Optional: Superuser auto-creation (comment out in production)
+      # DJANGO_SUPERUSER_USERNAME: admin
+      # DJANGO_SUPERUSER_EMAIL: admin@passd.local
+      # DJANGO_SUPERUSER_PASSWORD: admin123
+      # DJANGO_SUPERUSER_SALT: salt123
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - passd_network
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import requests; requests.get('http://localhost:8000/admin/', timeout=5)\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  passd_network:
+    driver: bridge
+    name: passd_network
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    name: passd_postgres_data
+  static_volume:
+    name: passd_static
+  media_volume:
+    name: passd_media
