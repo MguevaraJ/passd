@@ -25,11 +25,11 @@ fi
 
 # Build images
 echo "🔨 Construyendo imágenes Docker..."
-docker-compose build
+docker compose build
 
 echo ""
 echo "🚀 Iniciando servicios..."
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "⏳ Esperando que los servicios estén listos..."
@@ -37,7 +37,7 @@ sleep 15
 
 echo ""
 echo "📦 Ejecutando migraciones..."
-docker-compose exec backend python manage.py migrate
+docker compose exec backend python manage.py migrate
 
 echo ""
 echo "================================================"
