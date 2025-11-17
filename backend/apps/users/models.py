@@ -20,6 +20,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=150, unique=True)
     salt = models.CharField(max_length=128)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

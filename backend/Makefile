@@ -72,14 +72,17 @@ seed-data: ## Create test data (users, folders, items)
 
 seed-data-clear: ## Clear and recreate all test data (WARNING: deletes all data)
 	@echo "⚠️  WARNING: This will delete ALL existing data!"
-	@read -p "Are you sure? [y/N] " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		docker-compose exec backend python manage.py seed_data --clear; \
-		echo "✅ Test data recreated!"; \
-	else \
-		echo "❌ Cancelled."; \
-	fi
+	@printf "Are you sure? [y/N] "; \
+	read REPLY; \
+	case "$$REPLY" in \
+		[Yy]*) \
+			docker-compose exec backend python manage.py seed_data --clear; \
+			echo "✅ Test data recreated!"; \
+			;; \
+		*) \
+			echo "❌ Cancelled."; \
+			;; \
+	esac
 
 collectstatic: ## Collect static files
 	@echo "📁 Collecting static files..."

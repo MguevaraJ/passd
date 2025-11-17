@@ -37,6 +37,7 @@ class Command(BaseCommand):
         admin, created = User.objects.get_or_create(
             email='admin@passd.local',
             defaults={
+                'username': 'admin',
                 'is_staff': True,
                 'is_superuser': True,
                 'salt': 'admin_salt_123',
@@ -46,6 +47,7 @@ class Command(BaseCommand):
             admin.set_password('admin123')
             admin.save()
             self.stdout.write(self.style.SUCCESS(f'✅ Superusuario creado: {admin.email}'))
+            self.stdout.write(self.style.SUCCESS(f'   Username: {admin.username}'))
             self.stdout.write(self.style.SUCCESS(f'   Password: admin123'))
             self.stdout.write(self.style.SUCCESS(f'   Salt: admin_salt_123'))
         else:
@@ -55,11 +57,13 @@ class Command(BaseCommand):
         test_users = [
             {
                 'email': 'test@passd.com',
+                'username': 'testuser',
                 'password': 'test123',
                 'salt': 'test_salt_456',
             },
             {
                 'email': 'demo@passd.com',
+                'username': 'demouser',
                 'password': 'demo123',
                 'salt': 'demo_salt_789',
             }
@@ -70,6 +74,7 @@ class Command(BaseCommand):
             user, created = User.objects.get_or_create(
                 email=user_data['email'],
                 defaults={
+                    'username': user_data['username'],
                     'salt': user_data['salt'],
                 }
             )
@@ -78,6 +83,7 @@ class Command(BaseCommand):
                 user.save()
                 users_created.append(user)
                 self.stdout.write(self.style.SUCCESS(f'✅ Usuario creado: {user.email}'))
+                self.stdout.write(self.style.SUCCESS(f'   Username: {user.username}'))
                 self.stdout.write(self.style.SUCCESS(f'   Password: {user_data["password"]}'))
                 self.stdout.write(self.style.SUCCESS(f'   Salt: {user_data["salt"]}'))
             else:
@@ -206,16 +212,19 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS('\n🔑 Credenciales de acceso:'))
         self.stdout.write(self.style.SUCCESS('   Superusuario:'))
+        self.stdout.write(self.style.SUCCESS('     Username: admin'))
         self.stdout.write(self.style.SUCCESS('     Email: admin@passd.local'))
         self.stdout.write(self.style.SUCCESS('     Password: admin123'))
         self.stdout.write(self.style.SUCCESS('     Salt: admin_salt_123'))
         
         self.stdout.write(self.style.SUCCESS('\n   Usuario de prueba:'))
+        self.stdout.write(self.style.SUCCESS('     Username: testuser'))
         self.stdout.write(self.style.SUCCESS('     Email: test@passd.com'))
         self.stdout.write(self.style.SUCCESS('     Password: test123'))
         self.stdout.write(self.style.SUCCESS('     Salt: test_salt_456'))
         
         self.stdout.write(self.style.SUCCESS('\n   Usuario demo:'))
+        self.stdout.write(self.style.SUCCESS('     Username: demouser'))
         self.stdout.write(self.style.SUCCESS('     Email: demo@passd.com'))
         self.stdout.write(self.style.SUCCESS('     Password: demo123'))
         self.stdout.write(self.style.SUCCESS('     Salt: demo_salt_789'))
